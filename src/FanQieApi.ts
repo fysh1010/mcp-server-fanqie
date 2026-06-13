@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// API 基础 URL
-const FANQIE_API_BASE = "http://103.236.91.147:9999";
+// API 基础 URL（可通过环境变量 FANQIE_API_BASE 覆盖，便于接口地址变更时无需改动代码）
+const FANQIE_API_BASE = process.env.FANQIE_API_BASE || "http://101.35.133.34:5000";
 
 /**
  * 番茄小说 API 封装类
@@ -83,7 +83,7 @@ export class FanQieApi {
   public async getSimpleDirectory(bookId: string): Promise<any> {
     try {
       const response = await this.axiosInstance.get('/api/directory', {
-        params: { fq_id: bookId }
+        params: { book_id: bookId }
       });
       return this.handleResponse(response);
     } catch (error: any) {
@@ -93,12 +93,13 @@ export class FanQieApi {
 
   /**
    * 获取章节内容（统一接口）
-   * @param tab 内容类型：小说、听书、短剧、漫画、批量
+   * @param tab 内容类型：小说、听书、短剧、漫画、批量、下载
    * @param itemId 单个章节ID（小说、听书、短剧、漫画）
    * @param itemIds 多个章节ID，逗号分隔（批量）
-   * @param bookId 书籍ID（批量获取时需要）
+   * @param bookId 书籍ID（批量、下载时需要）
    * @param showHtml 漫画是否返回HTML格式
    * @param toneId 有声书音色ID
+   * @param asyncMode 漫画异步模式（0或1，默认1）
    */
   public async getContent(
     tab: string,
@@ -106,7 +107,8 @@ export class FanQieApi {
     itemIds?: string,
     bookId?: string,
     showHtml?: string,
-    toneId?: string
+    toneId?: string,
+    asyncMode?: string
   ): Promise<any> {
     try {
       const params: any = { tab };
@@ -115,6 +117,7 @@ export class FanQieApi {
       if (bookId) params.book_id = bookId;
       if (showHtml) params.show_html = showHtml;
       if (toneId) params.tone_id = toneId;
+      if (asyncMode) params.async = asyncMode;
 
       const response = await this.axiosInstance.get('/api/content', { params });
       return this.handleResponse(response);
@@ -126,11 +129,14 @@ export class FanQieApi {
   /**
    * 获取章节内容（简单接口）
    * @param itemId 章节ID
+   *
+   * 注：新服务器的 /api/chapter 端点目前服务端异常（始终返回 500 JSON解析失败），
+   * 因此改用稳定可用的统一内容接口 /api/content?tab=小说 获取单章正文。
    */
   public async getChapter(itemId: string): Promise<any> {
     try {
-      const response = await this.axiosInstance.get('/api/chapter', {
-        params: { item_id: itemId }
+      const response = await this.axiosInstance.get('/api/content', {
+        params: { tab: '小说', item_id: itemId }
       });
       return this.handleResponse(response);
     } catch (error: any) {

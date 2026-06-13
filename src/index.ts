@@ -116,14 +116,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "get_content",
-        description: "Unified content retrieval interface supporting novels, audiobooks, short dramas, comics, and batch retrieval",
+        description: "Unified content retrieval interface supporting novels, audiobooks, short dramas, comics, batch retrieval, and whole-book download",
         inputSchema: {
           type: "object",
           properties: {
             tab: {
               type: "string",
-              description: "Content type: novel, audiobook, short drama, comic, batch",
-              enum: ["novel", "audiobook", "short drama", "comic", "batch"]
+              description: "Content type: novel, audiobook, short drama, comic, batch, download",
+              enum: ["novel", "audiobook", "short drama", "comic", "batch", "download"]
             },
             item_id: {
               type: "string",
@@ -135,7 +135,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             book_id: {
               type: "string",
-              description: "Book ID (required for batch retrieval)"
+              description: "Book ID (required for batch retrieval and download)"
             },
             show_html: {
               type: "string",
@@ -145,6 +145,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             tone_id: {
               type: "string",
               description: "Audiobook voice ID (used for audiobook, default 0)"
+            },
+            async: {
+              type: "string",
+              description: "Comic async mode (0 or 1, default 1). Recommended 1 for faster responses",
+              enum: ["0", "1"]
             }
           },
           required: ["tab"]
@@ -341,6 +346,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const bookId = request.params.arguments?.book_id ? String(request.params.arguments.book_id) : undefined;
         const showHtml = request.params.arguments?.show_html ? String(request.params.arguments.show_html) : undefined;
         const toneId = request.params.arguments?.tone_id ? String(request.params.arguments.tone_id) : undefined;
+        const asyncMode = request.params.arguments?.async ? String(request.params.arguments.async) : undefined;
 
         if (!tab) {
           throw new Error("内容类型不能为空");
@@ -351,14 +357,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           if (!itemIds || !bookId) {
             throw new Error("批量获取需要提供 item_ids 和 book_id 参数");
           }
+        } else if (tab === "download") {
+          if (!bookId) {
+            throw new Error("整本下载需要提供 book_id 参数");
+          }
         } else {
           if (!itemId) {
             throw new Error("需要提供 item_id 参数");
           }
         }
 
-        const result = await fanqieApi.getContent(tab, itemId, itemIds, bookId, showHtml, toneId);
-        
+        const result = await fanqieApi.getContent(tab, itemId, itemIds, bookId, showHtml, toneId, asyncMode);
+
         return {
           content: [{
             type: "text",

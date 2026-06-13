@@ -93,17 +93,20 @@
   - `short drama` - 短剧视频
   - `comic` - 漫画图片
   - `batch` - 批量获取多个章节
-- `item_id` (可选): 单个章节/视频/漫画 ID（非批量时必需）
+  - `download` - 下载整本小说
+- `item_id` (可选): 单个章节/视频/漫画 ID（小说、听书、短剧、漫画时必需）
 - `item_ids` (可选): 多个章节 ID，逗号分隔（批量时必需）
-- `book_id` (可选): 书籍 ID（批量获取时必需）
+- `book_id` (可选): 书籍 ID（批量、下载时必需）
 - `show_html` (可选): 漫画是否返回 HTML 格式（0 或 1，默认 0）
 - `tone_id` (可选): 有声书音色 ID（听书时使用，默认 0）
+- `async` (可选): 漫画异步模式（0 或 1，默认 1，建议为 1 以获得更快响应）
 
 **使用场景：**
 - 获取单个小说章节：`tab=novel, item_id=章节ID`
 - 获取有声书音频：`tab=audiobook, item_id=章节ID`
 - 获取漫画图片：`tab=comic, item_id=章节ID`
 - 批量获取章节：`tab=batch, item_ids=章节ID1,章节ID2, book_id=书籍ID`
+- 下载整本小说：`tab=download, book_id=书籍ID`
 
 ### 7. get_comments - 获取评论
 获取书籍、章节或其他内容的评论列表，支持分页。
@@ -209,7 +212,7 @@ npm run build
 ```json
 {
   "mcpServers": {
-    "m友-server-fanqie": {
+    "mcp-server-fanqie": {
       "command": "node",
       "args": ["E:\\AI\\AI_Agent\\mcp-server-weread\\fanqie-mcp\\build\\index.js"]
     }
@@ -218,6 +221,26 @@ npm run build
 ```
 
 **注意：** 路径需要根据你的实际安装位置调整。
+
+### 自定义 API 地址（可选）
+
+服务默认使用内置的 API 地址。如果接口地址发生变更，可通过环境变量 `FANQIE_API_BASE` 覆盖，无需修改代码：
+
+```json
+{
+  "mcpServers": {
+    "mcp-server-fanqie": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-fanqie"],
+      "env": {
+        "FANQIE_API_BASE": "http://101.35.133.34:5000"
+      }
+    }
+  }
+}
+```
+
+也可在项目根目录创建 `.env` 文件：`FANQIE_API_BASE=http://101.35.133.34:5000`
 
 ## 🎯 使用示例
 
@@ -399,11 +422,16 @@ fanqie-mcp/
 ## 🔗 相关链接
 
 - [番茄小说官网](https://fanqienovel.com/)
-- [番茄小说 API 文档](http://103.236.91.147:9999/docs)
+- [番茄小说 API 文档](http://101.35.133.34:5000/docs)
 - [MCP 协议规范](https://modelcontextprotocol.io/)
 - [微信读书 MCP 服务器](https://github.com/freestylefly/mcp-server-weread)
 
 ## 📝 更新日志
+
+### v0.1.1 (2026-06-13)
+- 🔧 更新 API 接口地址（原地址已失效）至 `http://101.35.133.34:5000`
+- ⚙️ 支持通过环境变量 `FANQIE_API_BASE` 自定义 API 地址，接口变更时无需改动代码
+- ✨ `get_content` 新增 `download` 整本下载类型及 `async` 漫画异步模式参数
 
 ### v0.1.0 (2025-01-16)
 - 🎉 首次发布
@@ -424,7 +452,7 @@ fanqie-mcp/
 
 ## 🙏 致谢
 
-本项目基于 [番茄小说 API](http://103.236.91.147:9999) 开发
+本项目基于 [番茄小说 API](http://101.35.133.34:5000) 开发
 - [MCP SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - [微信读书 MCP 服务器](https://github.com/freestylefly/mcp-server-weread) - 提供了开发参考
 
