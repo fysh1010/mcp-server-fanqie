@@ -1,5 +1,5 @@
 {
-  "name": "mcp-server-fanqie",
+  "name": "@fysh925/mcp-server-fanqie",
   "version": "0.1.1",
   "description": "A FanQie (Tomato) Novel MCP Server",
   "private": false,

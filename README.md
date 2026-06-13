@@ -179,42 +179,46 @@
 
 ---
 
-### 🚀 方式一：部署到魔搭社区 / 云托管平台（从 GitHub 导入，推荐）
+### 🚀 方式一：用 npx 一键配置（推荐，魔搭托管 / 本地客户端通用）
 
-1. 在魔搭社区「创建 MCP 服务」，选择**从 GitHub 仓库导入**，填入本仓库地址：
-   `https://github.com/fysh1010/mcp-server-fanqie`
-
-2. 启动命令配置——**直接复制下面这段，不要改 args 路径**：
+包已发布到 npm（`@fysh925/mcp-server-fanqie`），**任何支持 MCP 的平台都用下面这一段配置**——魔搭社区「可托管部署」、Claude Desktop、Cursor、Cherry Studio 全都适用：
 
 ```json
 {
   "mcpServers": {
     "fanqie-novel": {
-      "command": "node",
-      "args": ["build/index.js"]
+      "command": "npx",
+      "args": ["-y", "@fysh925/mcp-server-fanqie"]
     }
   }
 }
 ```
 
-> ⚠️ **三条关键提醒（粘贴出错基本都是因为没注意这些）：**
-> 1. `args` 用**相对路径** `build/index.js`（相对仓库根目录），**绝不要填某台机器的绝对路径**——别的环境里那个路径不存在，必然报错。
-> 2. **不要用 `npx -y mcp-server-fanqie`**！npm 上的包是旧版本，会连到**已失效的旧接口地址**（`103.236.91.147:9999`），导致连接失败。请始终从本 GitHub 仓库部署。
-> 3. 仓库已自带 `build/`，平台**不需要**执行 `npm install` 或编译，拿到代码即可运行。
+- **魔搭社区**：创建 MCP 服务 → 选「可托管部署」→ 配置里粘贴上面这段。魔搭云端会用 npx 自动从 npm 拉起服务，**无需你自己的服务器，也无需下载代码**。
+- **本地客户端**（Claude Desktop / Cursor / Cherry Studio）：把上面这段填进对应配置文件即可。
 
-3. 部署后在魔搭调试 / 实验场里确认：能看到 **14 个工具**、调用 `search_books` 搜书能正常返回 —— 即成功。
+> ✅ **为什么用 npx**：魔搭等平台的「可托管部署」需要从公共仓库（npm）拉起服务。npx 会自动下载并运行最新版 `@fysh925/mcp-server-fanqie`，这是云端托管最省心、最可靠的方式。如果填本地路径（`node build/index.js`），魔搭云端没有你的仓库文件，会部署失败并退化成「仅本地可用」。
+
+部署后确认：能看到 **14 个工具**、调用 `search_books` 搜书能正常返回 —— 即成功。
+
+各客户端配置文件位置：
+- **Claude Desktop**：`claude_desktop_config.json`
+- **Cursor**：`~/.cursor/mcp.json` 或项目内 `.cursor/mcp.json`
+- **Cherry Studio**：设置 → MCP 服务器 → 编辑 JSON
+
+> 改完配置后需**完全退出并重启客户端**才生效（刷新无效）。
 
 ---
 
-### 💻 方式二：本地客户端使用（Claude Desktop / Cursor / Cherry Studio 等）
+### 💻 方式二：用本地源码运行（不想用 npx 时）
 
-1. 克隆仓库（已含 `build/`，克隆完即可运行，无需编译）：
+仓库已含编译产物 `build/`，克隆后即可运行，无需编译：
 
 ```bash
 git clone https://github.com/fysh1010/mcp-server-fanqie.git
 ```
 
-2. 在客户端的 MCP 配置中填入，把路径换成你**克隆后的实际绝对路径**：
+配置里用 `node` + 你克隆后的**实际绝对路径**：
 
 ```json
 {
@@ -227,21 +231,14 @@ git clone https://github.com/fysh1010/mcp-server-fanqie.git
 }
 ```
 
-- Windows 示例（反斜杠必须**双写** `\\`）：
-  `"args": ["C:\\Users\\你的用户名\\mcp-server-fanqie\\build\\index.js"]`
-- macOS / Linux 示例：
-  `"args": ["/Users/你的用户名/mcp-server-fanqie/build/index.js"]`
+- Windows 示例（反斜杠必须**双写** `\\`）：`"args": ["C:\\Users\\你的用户名\\mcp-server-fanqie\\build\\index.js"]`
+- macOS / Linux 示例：`"args": ["/Users/你的用户名/mcp-server-fanqie/build/index.js"]`
 
-3. 各客户端配置文件位置：
-   - **Claude Desktop**：`claude_desktop_config.json`
-   - **Cursor**：`~/.cursor/mcp.json` 或项目内 `.cursor/mcp.json`
-   - **Cherry Studio**：设置 → MCP 服务器 → 编辑 JSON
-
-> 改完配置后需**完全退出并重启客户端**才会生效（刷新无效）。
+> ⚠️ 本地绝对路径只适用于本机客户端，**不要**填到魔搭等云平台（云端没有这个路径）。云平台请用方式一的 npx。
 
 ---
 
-### 🔧 方式三：从源码自行编译（仅当你改了 `src/` 源码时才需要）
+### 🔧 方式三：从源码自行编译（仅当你改了 `src/` 源码时）
 
 ```bash
 git clone https://github.com/fysh1010/mcp-server-fanqie.git
@@ -262,8 +259,8 @@ npm run build      # 重新生成 build/
 {
   "mcpServers": {
     "fanqie-novel": {
-      "command": "node",
-      "args": ["build/index.js"],
+      "command": "npx",
+      "args": ["-y", "@fysh925/mcp-server-fanqie"],
       "env": {
         "FANQIE_API_BASE": "http://新的接口地址:端口"
       }
@@ -463,6 +460,7 @@ mcp-server-fanqie/
 ## 📝 更新日志
 
 ### v0.1.1 (2026-06-13)
+- 📦 已发布到 npm：`@fysh925/mcp-server-fanqie`，可用 `npx -y @fysh925/mcp-server-fanqie` 一键部署到魔搭等平台
 - 🔧 更新 API 接口地址（原地址已失效）至 `http://101.35.133.34:5000`
 - ⚙️ 支持通过环境变量 `FANQIE_API_BASE` 自定义 API 地址，接口变更时无需改动代码
 - ✨ `get_content` 新增 `download` 整本下载类型及 `async` 漫画异步模式参数
