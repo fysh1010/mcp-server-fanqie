@@ -171,99 +171,101 @@
 
 ## 📦 安装与使用
 
+> ✅ 本仓库**已包含编译产物 `build/`**，克隆或导入后**无需自己编译即可直接运行**。
+
 ### 先决条件
 
-- Node.js 16.x 或更高版本
-- TypeScript 5.x 或更高版本
+- Node.js 16.x 或更高版本（仅运行的话不需要装 TypeScript）
 
-### 安装
+---
 
-#### 方式一：全局安装（推荐）
+### 🚀 方式一：部署到魔搭社区 / 云托管平台（从 GitHub 导入，推荐）
 
-```bash
-npm install -g mcp-server-fanqie
-```
+1. 在魔搭社区「创建 MCP 服务」，选择**从 GitHub 仓库导入**，填入本仓库地址：
+   `https://github.com/fysh1010/mcp-server-fanqie`
 
-#### 方式二：本地安装
-
-```bash
-cd fanqie-mcp
-npm install
-npm run build
-```
-
-### 与 Claude Desktop 集成
-
-#### 方式一：通过 npx 使用（最简单）
-
-1. 打开 Claude Desktop
-2. 进入设置 → MCP 配置
-3. 添加工具，使用以下 JSON 配置：
+2. 启动命令配置——**直接复制下面这段，不要改 args 路径**：
 
 ```json
 {
   "mcpServers": {
-    "mcp-server-fanqie": {
-      "command": "npx",
-      "args": ["-y", "mcp-server-fanqie"]
-    }
-  }
-}
-```
-
-#### 方式二：全局安装后使用
-
-1. 全局安装包：
-```bash
-npm install -g mcp-server-fanqie
-```
-
-2. 在 Claude 配置中使用：
-```json
-{
-  "mcpServers": {
-    "mcp-server-fanqie": {
-      "command": "mcp-server-fanqie"
-    }
-  }
-}
-```
-
-#### 方式三：本地构建后使用
-
-1. 进入项目目录并构建：
-```bash
-cd fanqie-mcp
-npm install
-npm run build
-```
-
-2. 在 Claude 配置中使用：
-```json
-{
-  "mcpServers": {
-    "mcp-server-fanqie": {
+    "fanqie-novel": {
       "command": "node",
-      "args": ["E:\\AI\\AI_Agent\\mcp-server-weread\\fanqie-mcp\\build\\index.js"]
+      "args": ["build/index.js"]
     }
   }
 }
 ```
 
-**注意：** 路径需要根据你的实际安装位置调整。
+> ⚠️ **三条关键提醒（粘贴出错基本都是因为没注意这些）：**
+> 1. `args` 用**相对路径** `build/index.js`（相对仓库根目录），**绝不要填某台机器的绝对路径**——别的环境里那个路径不存在，必然报错。
+> 2. **不要用 `npx -y mcp-server-fanqie`**！npm 上的包是旧版本，会连到**已失效的旧接口地址**（`103.236.91.147:9999`），导致连接失败。请始终从本 GitHub 仓库部署。
+> 3. 仓库已自带 `build/`，平台**不需要**执行 `npm install` 或编译，拿到代码即可运行。
 
-### 自定义 API 地址（可选）
+3. 部署后在魔搭调试 / 实验场里确认：能看到 **14 个工具**、调用 `search_books` 搜书能正常返回 —— 即成功。
 
-服务默认使用内置的 API 地址。如果接口地址发生变更，可通过环境变量 `FANQIE_API_BASE` 覆盖，无需修改代码：
+---
+
+### 💻 方式二：本地客户端使用（Claude Desktop / Cursor / Cherry Studio 等）
+
+1. 克隆仓库（已含 `build/`，克隆完即可运行，无需编译）：
+
+```bash
+git clone https://github.com/fysh1010/mcp-server-fanqie.git
+```
+
+2. 在客户端的 MCP 配置中填入，把路径换成你**克隆后的实际绝对路径**：
 
 ```json
 {
   "mcpServers": {
-    "mcp-server-fanqie": {
-      "command": "npx",
-      "args": ["-y", "mcp-server-fanqie"],
+    "fanqie-novel": {
+      "command": "node",
+      "args": ["/你的克隆路径/mcp-server-fanqie/build/index.js"]
+    }
+  }
+}
+```
+
+- Windows 示例（反斜杠必须**双写** `\\`）：
+  `"args": ["C:\\Users\\你的用户名\\mcp-server-fanqie\\build\\index.js"]`
+- macOS / Linux 示例：
+  `"args": ["/Users/你的用户名/mcp-server-fanqie/build/index.js"]`
+
+3. 各客户端配置文件位置：
+   - **Claude Desktop**：`claude_desktop_config.json`
+   - **Cursor**：`~/.cursor/mcp.json` 或项目内 `.cursor/mcp.json`
+   - **Cherry Studio**：设置 → MCP 服务器 → 编辑 JSON
+
+> 改完配置后需**完全退出并重启客户端**才会生效（刷新无效）。
+
+---
+
+### 🔧 方式三：从源码自行编译（仅当你改了 `src/` 源码时才需要）
+
+```bash
+git clone https://github.com/fysh1010/mcp-server-fanqie.git
+cd mcp-server-fanqie
+npm install
+npm run build      # 重新生成 build/
+```
+
+> 改完源码记得 `npm run build` 重新编译，并把 `src/` 和 `build/` 一起提交，否则托管平台运行的还是旧版本。
+
+---
+
+### ⚙️ 自定义 API 地址（可选）
+
+服务默认使用内置接口地址 `http://101.35.133.34:5000`。若该地址日后变更，可通过环境变量 `FANQIE_API_BASE` 覆盖，无需改代码：
+
+```json
+{
+  "mcpServers": {
+    "fanqie-novel": {
+      "command": "node",
+      "args": ["build/index.js"],
       "env": {
-        "FANQIE_API_BASE": "http://101.35.133.34:5000"
+        "FANQIE_API_BASE": "http://新的接口地址:端口"
       }
     }
   }
@@ -412,7 +414,8 @@ get_comments(book_id="7233628636023098407", count=10, offset=0)
 ### 构建项目
 
 ```bash
-cd fanqie-mcp
+git clone https://github.com/fysh1010/mcp-server-fanqie.git
+cd mcp-server-fanqie
 npm install
 npm run build
 ```
@@ -438,13 +441,14 @@ npm run inspector
 ## 📁 项目结构
 
 ```
-fanqie-mcp/
+mcp-server-fanqie/
 ├── src/
-│   ├── FanQieApi.ts      # 番茄小说 API 封装类
+│   ├── FanQieApi.ts        # 番茄小说 API 封装类
+│   ├── fontDecrypt.ts      # 字体解密模块（备用）
 │   └── index.ts            # MCP 服务器主入口
-├── build/                  # 编译输出目录
-├── package.json             # 项目配置
-├── tsconfig.json            # TypeScript 配置
+├── build/                  # 编译产物（已纳入版本控制，可直接运行）
+├── package.json            # 项目配置
+├── tsconfig.json           # TypeScript 配置
 ├── .gitignore              # Git 忽略文件
 └── README.md               # 说明文档
 ```
