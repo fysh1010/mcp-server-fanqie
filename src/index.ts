@@ -216,6 +216,56 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             }
           }
         }
+      },
+      {
+        name: "get_raw_content",
+        description: "Get the unprocessed raw chapter content, including the complete response data (HTML format, author notes, etc.)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            item_id: {
+              type: "string",
+              description: "Chapter ID"
+            }
+          },
+          required: ["item_id"]
+        }
+      },
+      {
+        name: "get_ios_content",
+        description: "Get chapter content using the iOS platform interface (signed with the 8402 algorithm). Note: depends on the iOS device pool and may be temporarily unavailable",
+        inputSchema: {
+          type: "object",
+          properties: {
+            item_id: {
+              type: "string",
+              description: "Chapter ID"
+            }
+          },
+          required: ["item_id"]
+        }
+      },
+      {
+        name: "register_ios_device",
+        description: "Register a new iOS device to the device pool. Note: depends on the upstream iOS service and may be temporarily unavailable",
+        inputSchema: {
+          type: "object",
+          properties: {}
+        }
+      },
+      {
+        name: "get_manga_progress",
+        description: "Query the progress of a manga download task by its task ID (returned from the comic content interface)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            task_id: {
+              type: "string",
+              description: "Task ID returned from the manga/comic content interface"
+            }
+          },
+          required: ["task_id"]
+        }
       }
     ]
   };
@@ -451,6 +501,83 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             text: JSON.stringify({
               platform: platform,
               device_status: result
+            }, null, 2)
+          }]
+        };
+      }
+
+      // 获取原始内容
+      case "get_raw_content": {
+        const itemId = String(request.params.arguments?.item_id || "");
+
+        if (!itemId) {
+          throw new Error("章节ID不能为空");
+        }
+
+        const result = await fanqieApi.getRawContent(itemId);
+
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              item_id: itemId,
+              raw_content: result
+            }, null, 2)
+          }]
+        };
+      }
+
+      // 获取 iOS 内容
+      case "get_ios_content": {
+        const itemId = String(request.params.arguments?.item_id || "");
+
+        if (!itemId) {
+          throw new Error("章节ID不能为空");
+        }
+
+        const result = await fanqieApi.getIosContent(itemId);
+
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              item_id: itemId,
+              content: result
+            }, null, 2)
+          }]
+        };
+      }
+
+      // 注册 iOS 设备
+      case "register_ios_device": {
+        const result = await fanqieApi.registerIosDevice();
+
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              registration_result: result
+            }, null, 2)
+          }]
+        };
+      }
+
+      // 查询漫画下载进度
+      case "get_manga_progress": {
+        const taskId = String(request.params.arguments?.task_id || "");
+
+        if (!taskId) {
+          throw new Error("任务ID不能为空");
+        }
+
+        const result = await fanqieApi.getMangaProgress(taskId);
+
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              task_id: taskId,
+              progress: result
             }, null, 2)
           }]
         };
