@@ -5,7 +5,7 @@ yarn.lock
 pnpm-lock.yaml
 
 # Build output
-build/
+# 注：build/ 已纳入版本控制，便于魔搭等托管平台直接运行而无需自行编译
 dist/
 *.tsbuildinfo
 
