@@ -461,6 +461,11 @@ mcp-server-fanqie/
 
 ## 📝 更新日志
 
+### v0.1.2 (2026-06-13)
+- 📄 补全 LICENSE 文件（MIT）
+- 🏷️ 完善 package.json 元数据（author / repository / homepage / bugs / keywords / engines）
+- ⭐ README 加入 Star History 星标曲线图
+
 ### v0.1.1 (2026-06-13)
 - 📦 已发布到 npm：`@fysh925/mcp-server-fanqie`，可用 `npx -y @fysh925/mcp-server-fanqie` 一键部署到魔搭等平台
 - 🔧 更新 API 接口地址（原地址已失效）至 `http://101.35.133.34:5000`

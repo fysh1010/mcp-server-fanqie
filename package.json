@@ -1,6 +1,6 @@
 {
   "name": "@fysh925/mcp-server-fanqie",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "番茄小说 MCP 服务器 / A FanQie (Tomato) Novel MCP Server — 支持搜索、书籍详情、目录、章节内容、评论等 14 个工具",
   "private": false,
   "type": "module",
