@@ -1,9 +1,35 @@
 {
   "name": "@fysh925/mcp-server-fanqie",
   "version": "0.1.1",
-  "description": "A FanQie (Tomato) Novel MCP Server",
+  "description": "番茄小说 MCP 服务器 / A FanQie (Tomato) Novel MCP Server — 支持搜索、书籍详情、目录、章节内容、评论等 14 个工具",
   "private": false,
   "type": "module",
+  "license": "MIT",
+  "author": "fysh1010 <2930234806@qq.com>",
+  "homepage": "https://github.com/fysh1010/mcp-server-fanqie#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fysh1010/mcp-server-fanqie.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fysh1010/mcp-server-fanqie/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "fanqie",
+    "tomato-novel",
+    "番茄小说",
+    "novel",
+    "小说",
+    "claude",
+    "cursor",
+    "llm",
+    "ai"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
   "bin": {
     "mcp-server-fanqie": "./build/index.js"
   },

@@ -495,6 +495,12 @@ mcp-server-fanqie/
 - [MCP SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - 项目结构参考了社区中其他 MCP 服务器的开发实践
 
+## ⭐ Star History
+
+如果这个项目对你有帮助，欢迎点个 Star 支持一下！
+
+[![Star History Chart](https://api.star-history.com/svg?repos=fysh1010/mcp-server-fanqie&type=Date)](https://star-history.com/#fysh1010/mcp-server-fanqie&Date)
+
 ---
 
 **注意：** 本项目仅供学习和研究使用，请遵守番茄小说的使用条款和 API 使用规范。
