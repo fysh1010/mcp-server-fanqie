@@ -5,9 +5,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/freestylefly/mcp-server-weread/blob/main/LICENSE"><img src="https://img.shields.io/github/license/freestylefly/mcp-server-weread?color=rgb(25%2C%20121%2C%20255)" alt="The MIT License"></a>
-  <a href="https://github.com/freestylefly/mcp-server-weread"><img src="https://img.shields.io/github/forks/freestylefly/mcp-server-weread?color=green" alt="Forks"></a>
-  <a href="https://github.com/freestylefly/mcp-server-weread"><img src="https://img.shields.io/github/stars/freestylefly/mcp-server-weread?style=flat-square&color=rgb(25%2C%20121%2C%20255)" alt="Stars"></a>
+  <a href="https://github.com/fysh1010/mcp-server-fanqie/blob/main/LICENSE"><img src="https://img.shields.io/github/license/fysh1010/mcp-server-fanqie?color=rgb(25%2C%20121%2C%20255)" alt="The MIT License"></a>
+  <a href="https://github.com/fysh1010/mcp-server-fanqie/network/members"><img src="https://img.shields.io/github/forks/fysh1010/mcp-server-fanqie?color=green" alt="Forks"></a>
+  <a href="https://github.com/fysh1010/mcp-server-fanqie/stargazers"><img src="https://img.shields.io/github/stars/fysh1010/mcp-server-fanqie?style=flat-square&color=rgb(25%2C%20121%2C%20255)" alt="Stars"></a>
+  <a href="https://www.npmjs.com/package/@fysh925/mcp-server-fanqie"><img src="https://img.shields.io/npm/v/@fysh925/mcp-server-fanqie?color=red" alt="npm version"></a>
 </p>
 
 一个为番茄小说（FanQie Novel）提供 MCP（Model Context Protocol）服务的工具，支持将番茄小说的书籍、目录、章节内容等数据提供给支持 MCP 协议的大语言模型客户端，如 Claude Desktop、Cursor。
@@ -454,8 +455,9 @@ mcp-server-fanqie/
 
 - [番茄小说官网](https://fanqienovel.com/)
 - [番茄小说 API 文档](http://101.35.133.34:5000/docs)
+- [本项目 npm 包](https://www.npmjs.com/package/@fysh925/mcp-server-fanqie)
+- [本项目 GitHub 仓库](https://github.com/fysh1010/mcp-server-fanqie)
 - [MCP 协议规范](https://modelcontextprotocol.io/)
-- [微信读书 MCP 服务器](https://github.com/freestylefly/mcp-server-weread)
 
 ## 📝 更新日志
 
@@ -491,7 +493,7 @@ mcp-server-fanqie/
 
 本项目基于 [番茄小说 API](http://101.35.133.34:5000) 开发
 - [MCP SDK](https://github.com/modelcontextprotocol/typescript-sdk)
-- [微信读书 MCP 服务器](https://github.com/freestylefly/mcp-server-weread) - 提供了开发参考
+- 项目结构参考了社区中其他 MCP 服务器的开发实践
 
 ---
 
