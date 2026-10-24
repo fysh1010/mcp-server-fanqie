@@ -19,7 +19,7 @@ import { FanQieApi } from "./FanQieApi.js";
 const server = new Server(
   {
     name: "mcp-server-fanqie",
-    version: "0.2.0-dev.4",
+    version: "0.2.0-dev.5",
   },
   {
     capabilities: {

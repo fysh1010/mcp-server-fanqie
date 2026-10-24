@@ -1,6 +1,6 @@
 # MCP 与 Skill 双入口
 
-本仓库保留一个数据核心，提供 MCP、Skill/CLI 和可选 HTTP API。当前 `0.2.0-dev.4` 为GitHub开发预览版。[下载Release](https://github.com/fysh1010/mcp-server-fanqie/releases/tag/v0.2.0-dev.4)。本次不发布npm，公共registry中的旧版不包含这些新功能。
+本仓库保留一个数据核心，提供 MCP、Skill/CLI 和可选 HTTP API。当前 `0.2.0-dev.5` 为GitHub开发预览版。[下载Release](https://github.com/fysh1010/mcp-server-fanqie/releases/tag/v0.2.0-dev.5)。本次不发布npm，公共registry中的旧版不包含这些新功能。
 
 ## 选择入口
 
@@ -50,7 +50,7 @@ npm run build
 
 ### 直接安装独立ZIP
 
-1. 下载Release中的 `fanqie-novel-skill-0.2.0-dev.4.zip`。
+1. 下载Release中的 `fanqie-novel-skill-0.2.0-dev.5.zip`。
 2. 将ZIP内完整的 `fanqie-novel` 目录解压到客户端支持的技能父目录。Codex示例：Windows为 `$HOME/.agents/skills/`，macOS/Linux为 `~/.agents/skills/`。
 3. 检查 `fanqie-novel/SKILL.md` 和 `fanqie-novel/scripts/runtime/` 都存在，不能形成多余的一层同名目录。
 4. 让客户端重新发现技能，必要时重启客户端。

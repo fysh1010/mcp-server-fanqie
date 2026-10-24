@@ -1,10 +1,10 @@
 # 番茄小说：Skill、MCP 与本地 API
 
-## Skill 与 MCP 双入口（0.2.0-dev.4）
+## Skill 与 MCP 双入口（0.2.0-dev.5）
 
 同一套官方数据查询代码，既可作为 **Skill 本地脚本**，也可作为 **MCP 工具** 使用。无需依赖旧的第三方番茄 API 站点。
 
-本版为 **GitHub 开发预览版**，普通 npm registry 中的旧版不代表本仓库的新功能。[下载 v0.2.0-dev.4](https://github.com/fysh1010/mcp-server-fanqie/releases/tag/v0.2.0-dev.4) · [详细安装指南](docs/USAGE.md) · [HTTP API 文档](server/README.md)
+本版为 **GitHub 开发预览版**，普通 npm registry 中的旧版不代表本仓库的新功能。[下载 v0.2.0-dev.5](https://github.com/fysh1010/mcp-server-fanqie/releases/tag/v0.2.0-dev.5) · [详细安装指南](docs/USAGE.md) · [HTTP API 文档](server/README.md)
 
 | 功能 | 状态 |
 | --- | --- |
@@ -26,7 +26,7 @@
 
 ## 安装 Skill（推荐本地脚本用户）
 
-1. 下载 [完整Skill ZIP](https://github.com/fysh1010/mcp-server-fanqie/releases/download/v0.2.0-dev.4/fanqie-novel-skill-0.2.0-dev.4.zip)。
+1. 下载 [完整Skill ZIP](https://github.com/fysh1010/mcp-server-fanqie/releases/download/v0.2.0-dev.5/fanqie-novel-skill-0.2.0-dev.5.zip)。
 2. 解压后，将整个 `fanqie-novel` 文件夹放进客户端的技能目录；Codex示例为 `$HOME/.agents/skills/`。不要只复制 `SKILL.md`。
 3. 确认本机有 Node.js 22+，让客户端重新发现技能。
 4. 输入 `$fanqie-novel 搜索《三体》，获取书评正文`。

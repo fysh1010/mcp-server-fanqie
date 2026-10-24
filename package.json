@@ -1,6 +1,6 @@
 {
   "name": "@fysh925/mcp-server-fanqie",
-  "version": "0.2.0-dev.4",
+  "version": "0.2.0-dev.5",
   "description": "番茄 MCP 与 Skill：小说、漫画、短剧分类搜索，书评正文，小说目录与网站正文",
   "private": false,
   "type": "module",
