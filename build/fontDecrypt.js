@@ -84,6 +84,12 @@ const GID_TO_CHAR = {
     58434: '士', 58679: '音', 58432: '轻', 58689: '目', 58591: '条',
     58682: '呢',
 };
+// Corrections to the existing character facts for the DNMrHsV173Pd4pgy font.
+// Never apply this table to a different font family.
+Object.assign(GID_TO_CHAR, {
+    58527: '意', 58536: '点', 58554: '本', 58577: '给', 58589: '行',
+    58593: '动', 58606: '名', 58620: '时', 58652: '情', 58676: '己',
+});
 // Unicode 私有区域起始地址 (根据字体文件分析)
 // 从 U+E3E8 开始，对应 gid 58344
 const UNICODE_START = 0xE3E8;

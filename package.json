@@ -1,7 +1,7 @@
 {
   "name": "@fysh925/mcp-server-fanqie",
-  "version": "0.1.2",
-  "description": "番茄小说 MCP 服务器 / A FanQie (Tomato) Novel MCP Server — 支持搜索、书籍详情、目录、章节内容、评论等 14 个工具",
+  "version": "0.2.0-dev.4",
+  "description": "番茄 MCP 与 Skill：小说、漫画、短剧分类搜索，书评正文，小说目录与网站正文",
   "private": false,
   "type": "module",
   "license": "MIT",
@@ -28,20 +28,36 @@
     "ai"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=22"
   },
   "bin": {
-    "mcp-server-fanqie": "./build/index.js"
+    "mcp-server-fanqie": "./server/mcp-local.mjs",
+    "fanqie-local-api": "./server/index.mjs",
+    "fanqie": "./server/cli.mjs"
   },
   "files": [
-    "build"
+    "build",
+    "server/*.mjs",
+    "!server/*.test.mjs",
+    "!server/*probe.mjs",
+    "server/*.md",
+    "skills/fanqie-novel/",
+    "scripts/*.mjs",
+    "docs/USAGE.md",
+    "licenses/",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "scripts": {
-    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "build": "tsc && node scripts/build-skill.mjs && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
     "prepare": "npm run build",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js",
-    "start": "node build/index.js"
+    "start": "node server/mcp-local.mjs",
+    "start:api": "node server/index.mjs",
+    "start:remote": "node build/index.js",
+    "test": "node --test server/*.test.mjs",
+    "cli": "node server/cli.mjs",
+    "install:skill": "node scripts/install-skill.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "0.6.0",

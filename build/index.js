@@ -12,7 +12,7 @@ import { FanQieApi } from "./FanQieApi.js";
  */
 const server = new Server({
     name: "mcp-server-fanqie",
-    version: "0.1.0",
+    version: "0.2.0-dev.4",
 }, {
     capabilities: {
         tools: {},
@@ -37,6 +37,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                         tab_type: {
                             type: "integer",
                             description: "Content type: 3=novel, 2=audiobook, 8=comic, 11=short drama",
+                            enum: [3, 2, 8, 11],
                             default: 3
                         },
                         offset: {
@@ -147,7 +148,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: "get_comments",
-                description: "Get comments for a book, chapter, or other content with pagination support",
+                description: "Get book reviews including the comment text, rating, likes and reply count. Use the returned cursor to fetch the next page. This tool reads book reviews, not chapter or paragraph comments.",
                 inputSchema: {
                     type: "object",
                     properties: {
@@ -155,9 +156,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                             type: "string",
                             description: "Book ID"
                         },
+                        cursor: {
+                            type: "string",
+                            description: "Opaque cursor returned by get_comments for the next page; pass it unchanged"
+                        },
                         count: {
                             type: "integer",
-                            description: "Number of items per page",
+                            description: "Number of items per page (1 to 100)",
+                            minimum: 1,
+                            maximum: 100,
                             default: 20
                         },
                         offset: {
@@ -270,7 +277,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             // 搜索书籍
             case "search_books": {
                 const key = String(request.params.arguments?.key || "");
-                const tabType = Number(request.params.arguments?.tab_type || 3);
+                const tabType = Number(request.params.arguments?.tab_type ?? 3);
                 const offset = Number(request.params.arguments?.offset || 0);
                 if (!key) {
                     throw new Error("搜索关键词不能为空");
@@ -401,12 +408,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             // 获取评论
             case "get_comments": {
                 const bookId = String(request.params.arguments?.book_id || "");
-                const count = Number(request.params.arguments?.count || 20);
+                const count = Number(request.params.arguments?.count ?? 20);
                 const offset = Number(request.params.arguments?.offset || 0);
+                const cursor = request.params.arguments?.cursor ? String(request.params.arguments.cursor) : undefined;
                 if (!bookId) {
                     throw new Error("书籍ID不能为空");
                 }
-                const result = await fanqieApi.getComments(bookId, count, offset);
+                const result = await fanqieApi.getComments(bookId, count, offset, cursor);
                 return {
                     content: [{
                             type: "text",

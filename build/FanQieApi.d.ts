@@ -59,7 +59,7 @@ export declare class FanQieApi {
      * @param count 每页数量
      * @param offset 偏移量
      */
-    getComments(bookId: string, count?: number, offset?: number): Promise<any>;
+    getComments(bookId: string, count?: number, offset?: number, cursor?: string): Promise<any>;
     /**
      * 获取设备池状态
      */

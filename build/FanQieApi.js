@@ -2,7 +2,7 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
 // API 基础 URL（可通过环境变量 FANQIE_API_BASE 覆盖，便于接口地址变更时无需改动代码）
-const FANQIE_API_BASE = process.env.FANQIE_API_BASE || "http://101.35.133.34:5000";
+const FANQIE_API_BASE = process.env.FANQIE_API_BASE || "http://127.0.0.1:5000";
 /**
  * 番茄小说 API 封装类
  * 提供搜索、获取书籍详情、目录、章节内容等功能
@@ -18,9 +18,16 @@ export class FanQieApi {
         this.axiosInstance = axios.create({
             baseURL: this.baseUrl,
             timeout: 60000,
+            ...(['localhost', '127.0.0.1', '[::1]'].includes(new URL(this.baseUrl).hostname) ? { proxy: false } : {}),
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0',
+                ...(process.env.FANQIE_API_TOKEN ? { Authorization: `Bearer ${process.env.FANQIE_API_TOKEN}` } : {})
             }
+        });
+        this.axiosInstance.interceptors.response.use((response) => response, (error) => {
+            if (error.response?.data?.message)
+                error.message = error.response.data.message;
+            return Promise.reject(error);
         });
     }
     /**
@@ -156,10 +163,10 @@ export class FanQieApi {
      * @param count 每页数量
      * @param offset 偏移量
      */
-    async getComments(bookId, count = 20, offset = 0) {
+    async getComments(bookId, count = 20, offset = 0, cursor) {
         try {
             const response = await this.axiosInstance.get('/api/comment', {
-                params: { book_id: bookId, count, offset }
+                params: { book_id: bookId, count, offset, ...(cursor ? { cursor } : {}) }
             });
             return this.handleResponse(response);
         }

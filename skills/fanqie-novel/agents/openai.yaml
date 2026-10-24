@@ -1,0 +1,4 @@
+interface:
+  display_name: "番茄小说"
+  short_description: "搜索番茄小说、漫画和短剧，读取书评正文、书籍详情、目录与小说章节"
+  default_prompt: "使用 $fanqie-novel 搜索我指定的番茄小说，核对作者并获取书评正文。"
