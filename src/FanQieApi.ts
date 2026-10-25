@@ -30,7 +30,10 @@ export class FanQieApi {
       }
     });
     this.axiosInstance.interceptors.response.use((response: any) => response, (error: any) => {
-      if (error.response?.data?.message) error.message = error.response.data.message;
+      if (error.response?.data?.message) {
+        error.message = error.response.data.message;
+        if (error.response.data.retry_after !== undefined) error.message += `（请等待 ${error.response.data.retry_after} 秒后重试）`;
+      }
       return Promise.reject(error);
     });
   }
@@ -41,10 +44,10 @@ export class FanQieApi {
    * @param tabType 搜索类型：3=小说，2=听书，8=漫画，11=短剧
    * @param offset 偏移量，用于分页
    */
-  public async searchBooks(key: string, tabType: number = 3, offset: number = 0): Promise<any> {
+  public async searchBooks(key: string, tabType: number = 3, offset: number = 0, cursor?: string): Promise<any> {
     try {
       const response = await this.axiosInstance.get('/api/search', {
-        params: { key, tab_type: tabType, offset }
+        params: { key, tab_type: tabType, offset, ...(cursor ? { cursor } : {}) }
       });
       return this.handleResponse(response);
     } catch (error: any) {
@@ -71,10 +74,10 @@ export class FanQieApi {
    * 获取书籍目录
    * @param bookId 书籍ID
    */
-  public async getBookDirectory(bookId: string): Promise<any> {
+  public async getBookDirectory(bookId: string, offset?: number, limit?: number): Promise<any> {
     try {
       const response = await this.axiosInstance.get('/api/book', {
-        params: { book_id: bookId }
+        params: { book_id: bookId, offset, limit }
       });
       return this.handleResponse(response);
     } catch (error: any) {
@@ -86,10 +89,10 @@ export class FanQieApi {
    * 获取简化目录
    * @param bookId 书籍ID
    */
-  public async getSimpleDirectory(bookId: string): Promise<any> {
+  public async getSimpleDirectory(bookId: string, offset?: number, limit?: number): Promise<any> {
     try {
       const response = await this.axiosInstance.get('/api/directory', {
-        params: { book_id: bookId }
+        params: { book_id: bookId, offset, limit }
       });
       return this.handleResponse(response);
     } catch (error: any) {
@@ -136,8 +139,7 @@ export class FanQieApi {
    * 获取章节内容（简单接口）
    * @param itemId 章节ID
    *
-   * 注：新服务器的 /api/chapter 端点目前服务端异常（始终返回 500 JSON解析失败），
-   * 因此改用稳定可用的统一内容接口 /api/content?tab=小说 获取单章正文。
+   * 使用兼容旧客户端的统一内容接口；本地 /api/chapter 同样可用。
    */
   public async getChapter(itemId: string): Promise<any> {
     try {
@@ -267,6 +269,14 @@ export class FanQieApi {
   /**
    * 处理API响应
    */
+  public async account(action: string, params: Record<string, unknown> = {}): Promise<any> {
+    if (!['localhost', '127.0.0.1', '[::1]'].includes(new URL(this.baseUrl).hostname))
+      throw new Error('账号功能仅允许连接本机 API，避免将个人登录交给远程服务');
+    const method = ['login/start', 'login/poll', 'logout'].includes(action) ? 'post' : 'get';
+    const response = await this.axiosInstance.request({ method, url: `/api/account/${action}`, params });
+    return this.handleResponse(response);
+  }
+
   private handleResponse(response: any): any {
     const { data } = response;
     

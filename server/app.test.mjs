@@ -41,9 +41,25 @@ test('category search reads video_data for dramas and book_data for manga', asyn
 });
 test('Skill CLI passes comment cursors and media search type to the shared implementation', async () => {
   const createClient = async () => ({ client: {
-    search: async (key, type, offset) => ({ key, type, offset }),
+    search: async (key, type, offset, cursor) => ({ key, type, offset, cursor }),
     comments: async (book, count, offset, cursor) => ({ book, count, offset, cursor }),
   } });
   assert.equal((await executeCLI(['search', '重生', '--type', 'drama'], { createClient })).data.type, 11);
+  assert.equal((await executeCLI(['search', '重生', '--type', 'drama', '--cursor', 'opaque+/='], { createClient })).data.cursor, 'opaque+/=');
   assert.equal((await executeCLI(['comments', '1', '--count', '3', '--cursor', 'opaque'], { createClient })).data.cursor, 'opaque');
+});
+
+test('category pagination passes opaque tokens through unchanged instead of coercing them into offsets', async () => {
+  const cursor = '{"offset":10,"session":"a+b/c="}';
+  let called;
+  const client = new WebsiteClient({ fetcher: async url => {
+    called = new URL(url);
+    return Response.json({ code: 0, search_tabs: [{ tab_type: 11, data: [], passback: cursor, has_more: '0' }] });
+  } });
+  const result = await dispatch(client, '/api/search', new URLSearchParams({ key: '重生', tab_type: '11', cursor }));
+  assert.equal(called.searchParams.get('passback'), cursor);
+  assert.equal(result.cursor, cursor);
+  assert.equal(result.next_offset, cursor);
+  assert.equal(result.has_more, false);
+  await assert.rejects(client.search('重生', 11, 0, 'bad\ncursor'), e => e.code === 400);
 });

@@ -21,6 +21,7 @@ export function searchResults(tab, tabType, offset) {
     }));
   });
   return { results, tab_type: tabType, offset, next_offset: tab.passback ?? tab.next_offset,
+    cursor: String(tab.passback ?? tab.next_offset ?? ''),
     has_more: yes(tab.has_more), source: 'official_app_search', scope: 'official_search_results', local_index: false,
     warning: '官方分类搜索可能混入推荐，请核对标题与作者；upstream_use_recommend为官方原始标记。' };
 }

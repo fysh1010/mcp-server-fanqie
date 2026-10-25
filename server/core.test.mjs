@@ -73,3 +73,36 @@ test('local index persists metadata and explicitly limits search scope', async (
   assert.equal(result.source, 'local_index');
   assert.equal((await reloaded.search('没有收录', 0)).total, 0);
 });
+
+test('directory pagination preserves full HTTP responses when omitted and returns clear page boundaries', async () => {
+  let calls = 0;
+  const client = { directory: async (book_id, simple) => {
+    calls++;
+    return { book_id, total: 3, simple, chapters: [{ item_id: '1' }, { item_id: '2' }, { item_id: '3' }] };
+  } };
+  for (const route of ['/api/book', '/api/directory']) {
+    const full = await dispatch(client, route, new URLSearchParams({ book_id: '123' }));
+    assert.equal(full.chapters.length, 3);
+    assert.equal(Object.hasOwn(full, 'limit'), false);
+    const page = await dispatch(client, route, new URLSearchParams({ book_id: '123', offset: '1', limit: '1' }));
+    assert.deepEqual(page.chapters, [{ item_id: '2' }]);
+    assert.equal(page.next_offset, 2);
+    assert.equal(page.simple, route === '/api/directory');
+    const last = await dispatch(client, route, new URLSearchParams({ book_id: '123', offset: '2', limit: '2' }));
+    assert.equal(last.returned, 1);
+    assert.equal(last.next_offset, null);
+    assert.equal(last.has_more, false);
+    const empty = await dispatch(client, route, new URLSearchParams({ book_id: '123', offset: '100' }));
+    assert.equal(empty.returned, 0);
+    assert.equal(empty.has_more, false);
+  }
+  const before = calls;
+  await assert.rejects(dispatch(client, '/api/book', new URLSearchParams({ book_id: '123', limit: '201' })), e => e.code === 400);
+  assert.equal(calls, before);
+});
+
+test('official novel search treats string zero as the last page', async () => {
+  const client = new WebsiteClient({ fetcher: async () => Response.json({ code: 0, data: { ret_data: [], has_more: '0' } }) });
+  assert.equal((await client.search('小说', 3, 0)).has_more, false);
+  await assert.rejects(client.search('小说', 3, 0, 'not-an-offset'), e => e.code === 400);
+});

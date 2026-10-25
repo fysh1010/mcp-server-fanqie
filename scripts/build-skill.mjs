@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 // Sources remain in server/ and src/; never edit the generated copies.
 const root = fileURLToPath(new URL('../', import.meta.url));
 const target = join(root, 'skills/fanqie-novel/scripts/runtime');
-const files = ['server/cli.mjs', 'server/client.mjs', 'server/core.mjs', 'server/local-index.mjs', 'server/app.mjs', 'server/sign.mjs', 'build/fontDecrypt.js', 'LICENSE', 'licenses/TikTok-Encryption-MIT.txt'];
+const files = ['server/cli.mjs', 'server/client.mjs', 'server/core.mjs', 'server/accounts.mjs', 'server/local-index.mjs', 'server/app.mjs', 'server/sign.mjs', 'build/fontDecrypt.js', 'LICENSE', 'licenses/TikTok-Encryption-MIT.txt'];
 for (const file of files) await access(join(root, file));
 for (const file of files) {
   const destination = join(target, file);

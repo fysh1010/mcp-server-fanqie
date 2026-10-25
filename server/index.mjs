@@ -6,8 +6,8 @@ import { createLocalClient } from './client.mjs';
 import { createApiServer } from './http.mjs';
 
 export async function startLocalServer({ port = integer(process.env.FANQIE_LOCAL_PORT, 5000, 1, 65535), quiet = false } = {}) {
-  const { client, index } = await createLocalClient();
-  const server = createApiServer(client, { index });
+  const { client, index, accounts } = await createLocalClient();
+  const server = createApiServer(client, { index, accounts });
   server.requestTimeout = 30000; server.headersTimeout = 10000;
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });
   if (!quiet) console.error(`番茄本地 API 已启动：http://127.0.0.1:${server.address().port}（官网直连）`);

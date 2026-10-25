@@ -2,10 +2,11 @@
 import { pathToFileURL } from 'node:url';
 import { ApiError, dispatch, integer } from './core.mjs';
 import { createLocalClient } from './client.mjs';
+import { dispatchAccount } from './accounts.mjs';
 
 const help = `番茄小说 CLI（Node.js 22+，无需启动 HTTP/MCP 服务）
 用法：fanqie <命令> [参数]
-  search <关键词> [--type novel|audiobook|manga|drama] [--offset 0]
+  search <关键词> [--type novel|audiobook|manga|drama] [--offset 0] [--cursor 分类搜索游标]
   comments <book_id> [--count 20] [--cursor 游标] [--offset 0]  书评正文
   detail <book_id>                   书籍详情
   directory <book_id> [--offset 0] [--limit 50]  分页显示目录
@@ -14,6 +15,14 @@ const help = `番茄小说 CLI（Node.js 22+，无需启动 HTTP/MCP 服务）
   batch <book_id> <item_id,...>       最多20章
   index-import <book_id>             录入本地元数据索引
   index-refresh                     刷新首页元数据索引
+  login-start [--account default]   获取本人登录二维码
+  login-poll <login_id> [--account default]  扫码后检查登录结果
+  account-status [--account default] 检查本人账号登录状态
+  bookshelf [--account default] [--offset 0] [--limit 20]  本人书架及进度
+  reading-progress [book_id] [--account default] [--offset 0] [--limit 20]  已同步的阅读位置
+  highlight-books [--account default] [--offset 0] [--limit 20]  有收藏的书及数量
+  highlights <book_id> [--account default] [--limit 20] [--cursor 游标]  本人收藏划线原文
+  logout [--account default]        清除该账号的本地登录凭据
   capabilities                      当前服务能力与限制
   help                              显示说明
 所有查询输出单个 JSON 对象。失败时 code 非200且进程退出码为1。`;
@@ -25,11 +34,31 @@ export async function executeCLI(args, { createClient = createLocalClient } = {}
   for (let i = 0; i < rest.length; i++) {
     const arg = rest[i];
     if (arg.startsWith('--')) {
-      if (!['--offset', '--limit', '--type', '--count', '--cursor'].includes(arg) || options[arg] !== undefined || rest[i + 1] === undefined || rest[i + 1].startsWith('--'))
+      if (!['--offset', '--limit', '--type', '--count', '--cursor', '--account'].includes(arg) || options[arg] !== undefined || rest[i + 1] === undefined || rest[i + 1].startsWith('--'))
         throw new ApiError(400, `不支持或缺少值的参数：${arg}`, 'INVALID_ARGUMENT');
       options[arg] = rest[++i];
     } else positions.push(arg);
   }
+  const accountRoutes = { 'login-start': 'login/start', 'login-poll': 'login/poll', 'account-status': 'status', bookshelf: 'bookshelf', 'reading-progress': 'progress', 'highlight-books': 'highlight-books', highlights: 'highlights', logout: 'logout' };
+  if (accountRoutes[command]) {
+    const count = ['login-poll', 'highlights'].includes(command) ? 1 : 0;
+    if (command === 'reading-progress' ? positions.length > 1 : positions.length !== count)
+      throw new ApiError(400, '账号命令的位置参数数量不正确', 'INVALID_ARGUMENT');
+    for (const option of Object.keys(options)) if (option !== '--account'
+      && !(['bookshelf', 'reading-progress', 'highlight-books'].includes(command) && ['--offset', '--limit'].includes(option))
+      && !(command === 'highlights' && ['--limit', '--cursor'].includes(option)))
+      throw new ApiError(400, '此账号命令不支持该参数', 'INVALID_ARGUMENT');
+    const p = new URLSearchParams({ account: options['--account'] || 'default' });
+    if (command === 'login-poll') p.set('login_id', positions[0]);
+    if (command === 'reading-progress' && positions[0]) p.set('book_id', positions[0]);
+    if (command === 'highlights') p.set('book_id', positions[0]);
+    if (options['--cursor'] !== undefined) p.set('cursor', options['--cursor']);
+    if (options['--offset'] !== undefined) p.set('offset', options['--offset']);
+    if (options['--limit'] !== undefined) p.set('limit', options['--limit']);
+    const { accounts } = await createClient();
+    return { code: 200, message: 'success', data: await dispatchAccount(accounts, accountRoutes[command], p) };
+  }
+  if (options['--account'] !== undefined) throw new ApiError(400, '公开查询不使用 --account', 'INVALID_ARGUMENT');
   const routes = { search: ['/api/search', 'key'], detail: ['/api/detail', 'book_id'],
     directory: ['/api/book', 'book_id'], chapter: ['/api/chapter', 'item_id'], raw: ['/api/raw_full', 'item_id'],
     batch: ['/api/content', 'book_id'], comments: ['/api/comment', 'book_id'], capabilities: ['/health'] };
@@ -38,7 +67,8 @@ export async function executeCLI(args, { createClient = createLocalClient } = {}
   const required = command === 'batch' ? 2 : ['capabilities', 'index-refresh'].includes(command) ? 0 : 1;
   if (positions.length !== required) throw new ApiError(400, `${command} 需要 ${required} 个位置参数`, 'INVALID_ARGUMENT');
   if (options['--offset'] !== undefined && !['search', 'directory', 'comments'].includes(command) || options['--limit'] !== undefined && command !== 'directory'
-    || options['--type'] !== undefined && command !== 'search' || (options['--count'] !== undefined || options['--cursor'] !== undefined) && command !== 'comments')
+    || options['--type'] !== undefined && command !== 'search' || options['--count'] !== undefined && command !== 'comments'
+    || options['--cursor'] !== undefined && !['search', 'comments'].includes(command))
     throw new ApiError(400, '此命令不接受该分页参数', 'INVALID_ARGUMENT');
   const { client, index } = await createClient();
   let data;
@@ -52,6 +82,7 @@ export async function executeCLI(args, { createClient = createLocalClient } = {}
       const type = { novel: 3, audiobook: 2, manga: 8, drama: 11 }[options['--type'] || 'novel'];
       if (!type) throw new ApiError(400, '--type 支持 novel、audiobook、manga、drama', 'INVALID_ARGUMENT');
       params.set('tab_type', String(type));
+      if (options['--cursor']) params.set('cursor', options['--cursor']);
     }
     if (command === 'comments') {
       params.set('count', String(integer(options['--count'], 20, 1, 100)));
@@ -59,13 +90,11 @@ export async function executeCLI(args, { createClient = createLocalClient } = {}
       if (options['--cursor']) params.set('cursor', options['--cursor']);
     }
     if (command === 'batch') { params.set('tab', 'batch'); params.set('item_ids', positions[1]); }
-    data = await dispatch(client, route, params);
     if (command === 'directory') {
-      const offset = integer(options['--offset'], 0, 0, 100000);
-      const limit = integer(options['--limit'], 50, 1, 200);
-      const chapters = data.chapters.slice(offset, offset + limit);
-      data = { ...data, chapters, offset, limit, has_more: offset + chapters.length < data.total };
+      params.set('offset', String(integer(options['--offset'], 0, 0, 100000)));
+      params.set('limit', String(integer(options['--limit'], 50, 1, 200)));
     }
+    data = await dispatch(client, route, params);
   }
   return { code: 200, message: 'success', data };
 }
@@ -74,7 +103,8 @@ export async function main(args = process.argv.slice(2)) {
   try { console.log(JSON.stringify(await executeCLI(args))); }
   catch (error) {
     console.log(JSON.stringify({ code: error instanceof ApiError ? error.code : 500,
-      message: error instanceof ApiError ? error.message : '本地查询失败', error: error.kind || 'INTERNAL_ERROR', data: null }));
+      message: error instanceof ApiError ? error.message : '本地查询失败', error: error.kind || 'INTERNAL_ERROR',
+      ...(error.retry_after !== undefined ? { retry_after: error.retry_after } : {}), data: null }));
     if (!(error instanceof ApiError)) console.error(error.message);
     process.exitCode = 1;
   }

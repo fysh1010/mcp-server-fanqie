@@ -29,6 +29,10 @@ test('installed skill runs independently of repository and npm dependencies', as
   const { stdout, stderr } = await exec(process.execPath, [script, 'capabilities'], { cwd: parent });
   assert.equal(stderr, '');
   assert.equal(JSON.parse(stdout).data.mode, 'direct_website');
+  const status = await exec(process.execPath, [script, 'account-status'], { cwd: parent,
+    env: { ...process.env, FANQIE_ACCOUNT_DIR: join(parent, 'private-accounts') } });
+  assert.equal(JSON.parse(status.stdout).data.status, 'disconnected');
+  assert.equal(JSON.parse(status.stdout).data.highlights_supported, true);
   assert.ok((await readFile(join(installed, 'SKILL.md'), 'utf8')).includes('fanqie-novel'));
   await assert.rejects(installSkill(parent), /目标已存在/);
   try { await exec(process.execPath, [script, 'chapter', '../bad'], { cwd: parent }); assert.fail('invalid ID was accepted'); }

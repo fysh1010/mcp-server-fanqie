@@ -13,7 +13,7 @@ export declare class FanQieApi {
      * @param tabType 搜索类型：3=小说，2=听书，8=漫画，11=短剧
      * @param offset 偏移量，用于分页
      */
-    searchBooks(key: string, tabType?: number, offset?: number): Promise<any>;
+    searchBooks(key: string, tabType?: number, offset?: number, cursor?: string): Promise<any>;
     /**
      * 获取书籍详情
      * @param bookId 书籍ID
@@ -23,12 +23,12 @@ export declare class FanQieApi {
      * 获取书籍目录
      * @param bookId 书籍ID
      */
-    getBookDirectory(bookId: string): Promise<any>;
+    getBookDirectory(bookId: string, offset?: number, limit?: number): Promise<any>;
     /**
      * 获取简化目录
      * @param bookId 书籍ID
      */
-    getSimpleDirectory(bookId: string): Promise<any>;
+    getSimpleDirectory(bookId: string, offset?: number, limit?: number): Promise<any>;
     /**
      * 获取章节内容（统一接口）
      * @param tab 内容类型：小说、听书、短剧、漫画、批量、下载
@@ -44,8 +44,7 @@ export declare class FanQieApi {
      * 获取章节内容（简单接口）
      * @param itemId 章节ID
      *
-     * 注：新服务器的 /api/chapter 端点目前服务端异常（始终返回 500 JSON解析失败），
-     * 因此改用稳定可用的统一内容接口 /api/content?tab=小说 获取单章正文。
+     * 使用兼容旧客户端的统一内容接口；本地 /api/chapter 同样可用。
      */
     getChapter(itemId: string): Promise<any>;
     /**
@@ -91,6 +90,7 @@ export declare class FanQieApi {
     /**
      * 处理API响应
      */
+    account(action: string, params?: Record<string, unknown>): Promise<any>;
     private handleResponse;
 }
 //# sourceMappingURL=FanQieApi.d.ts.map

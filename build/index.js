@@ -7,12 +7,36 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, } from "@modelcontextprotocol/sdk/types.js";
 import { FanQieApi } from "./FanQieApi.js";
+const accountProperty = { type: 'string', pattern: '^[a-z0-9][a-z0-9_-]{0,31}$', default: 'default', description: 'Local profile name. Each profile must be authorized by its owner.' };
+const accountActions = {
+    start_account_login: 'login/start', poll_account_login: 'login/poll', get_account_status: 'status',
+    get_my_bookshelf: 'bookshelf', get_my_reading_progress: 'progress', logout_account: 'logout',
+    get_my_highlight_books: 'highlight-books', get_my_highlights: 'highlights',
+};
+const accountTools = [
+    { name: 'start_account_login', description: 'Start official QR login for the user\'s own account. Show the QR image and instructions; the user must scan and confirm on their phone.',
+        inputSchema: { type: 'object', properties: { account: accountProperty } } },
+    { name: 'poll_account_login', description: 'Check a requested QR login, no more often than every 3 seconds. Never ask the user to paste passwords or cookies.',
+        inputSchema: { type: 'object', properties: { account: accountProperty, login_id: { type: 'string' } }, required: ['login_id'] } },
+    { name: 'get_account_status', description: 'Check whether this local profile has a valid official account session.',
+        inputSchema: { type: 'object', properties: { account: accountProperty } } },
+    { name: 'get_my_bookshelf', description: 'Read the authorized account\'s current official bookshelf with synced reading positions. This is not the entire lifetime reading history.',
+        inputSchema: { type: 'object', properties: { account: accountProperty, offset: { type: 'integer', minimum: 0, default: 0 }, limit: { type: 'integer', minimum: 1, maximum: 100, default: 20 } } } },
+    { name: 'get_my_reading_progress', description: 'Read available cloud reading positions for the authorized account, optionally filtered by book_id. Progress units are upstream values; do not assume percentages.',
+        inputSchema: { type: 'object', properties: { account: accountProperty, book_id: { type: 'string' }, offset: { type: 'integer', minimum: 0, default: 0 }, limit: { type: 'integer', minimum: 1, maximum: 100, default: 20 } } } },
+    { name: 'logout_account', description: 'Forget this local profile\'s credentials and pending login. Does not delete the official bookshelf or log out other devices.',
+        inputSchema: { type: 'object', properties: { account: accountProperty } } },
+    { name: 'get_my_highlight_books', description: 'List books with the authorized user\'s saved highlights/bookmarks and counts. This is separate from the current bookshelf. Notes counts do not imply notes text is supported.',
+        inputSchema: { type: 'object', properties: { account: accountProperty, offset: { type: 'integer', minimum: 0, default: 0 }, limit: { type: 'integer', minimum: 1, maximum: 100, default: 20 } } } },
+    { name: 'get_my_highlights', description: 'Read the authorized user\'s saved underlined text, chapter and positions. Pass returned cursor unchanged until has_more=false; a page may contain zero highlights when upstream rows are bookmarks. Does not read separate personal note text.',
+        inputSchema: { type: 'object', properties: { account: accountProperty, book_id: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 100, default: 20 }, cursor: { type: 'string' } }, required: ['book_id'] } },
+];
 /**
  * 创建MCP服务器，只提供tools能力
  */
 const server = new Server({
     name: "mcp-server-fanqie",
-    version: "0.2.0-dev.5",
+    version: "0.2.0-dev.6",
 }, {
     capabilities: {
         tools: {},
@@ -24,6 +48,7 @@ const server = new Server({
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
         tools: [
+            ...accountTools,
             {
                 name: "search_books",
                 description: "Search for books on FanQie (Tomato) Novel platform by keywords. Supports searching for novels, audiobooks, comics, and short dramas.",
@@ -44,6 +69,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                             type: "integer",
                             description: "Offset for pagination",
                             default: 0
+                        },
+                        cursor: {
+                            type: "string",
+                            description: "For audiobook/comic/drama search, pass the returned cursor unchanged. Novel search uses offset."
                         }
                     },
                     required: ["key"]
@@ -65,28 +94,32 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: "get_book_directory",
-                description: "Get the complete chapter directory of a book including all volumes and chapters",
+                description: "Get the chapter directory with volumes. Returns 50 chapters by default; use next_offset for subsequent pages.",
                 inputSchema: {
                     type: "object",
                     properties: {
                         book_id: {
                             type: "string",
                             description: "Book ID"
-                        }
+                        },
+                        offset: { type: "integer", minimum: 0, maximum: 100000, default: 0 },
+                        limit: { type: "integer", minimum: 1, maximum: 200, default: 50 }
                     },
                     required: ["book_id"]
                 }
             },
             {
                 name: "get_simple_directory",
-                description: "Get simplified directory information with only chapter titles and IDs",
+                description: "Get chapter titles and IDs, 50 per page by default. Use next_offset for subsequent pages.",
                 inputSchema: {
                     type: "object",
                     properties: {
                         book_id: {
                             type: "string",
                             description: "Book ID"
-                        }
+                        },
+                        offset: { type: "integer", minimum: 0, maximum: 100000, default: 0 },
+                        limit: { type: "integer", minimum: 1, maximum: 200, default: 50 }
                     },
                     required: ["book_id"]
                 }
@@ -107,13 +140,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: "get_content",
-                description: "Unified content retrieval interface supporting novels, audiobooks, short dramas, comics, batch retrieval, and whole-book download",
+                description: "Retrieve website-visible novel chapters: novel for one chapter, batch for up to 20 chapters from one book. Other legacy modes remain in the schema for compatibility and return unsupported (501).",
                 inputSchema: {
                     type: "object",
                     properties: {
                         tab: {
                             type: "string",
-                            description: "Content type: novel, audiobook, short drama, comic, batch, download",
+                            description: "Supported: novel, batch. Legacy audiobook, short drama, comic and download modes return 501.",
                             enum: ["novel", "audiobook", "short drama", "comic", "batch", "download"]
                         },
                         item_id: {
@@ -178,7 +211,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: "get_device_pool_status",
-                description: "View the overall status of the device pool including all registered devices",
+                description: "Return compatibility information for local website mode. Does not inspect or manage an App device pool.",
                 inputSchema: {
                     type: "object",
                     properties: {}
@@ -186,7 +219,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: "register_device",
-                description: "Register a new device to the device pool",
+                description: "Legacy compatibility tool; device registration is not implemented and returns unsupported (501).",
                 inputSchema: {
                     type: "object",
                     properties: {
@@ -201,7 +234,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: "get_device_status",
-                description: "View the status of devices for a specific platform",
+                description: "Return local website-mode status. Does not validate real Android or iOS devices.",
                 inputSchema: {
                     type: "object",
                     properties: {
@@ -216,7 +249,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: "get_raw_content",
-                description: "Get the unprocessed raw chapter content, including the complete response data (HTML format, author notes, etc.)",
+                description: "Get original website chapter fields together with decoded website-visible text. Does not guarantee full App content.",
                 inputSchema: {
                     type: "object",
                     properties: {
@@ -230,7 +263,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: "get_ios_content",
-                description: "Get chapter content using the iOS platform interface (signed with the 8402 algorithm). Note: depends on the iOS device pool and may be temporarily unavailable",
+                description: "Legacy compatibility tool; iOS content protocol is not implemented and returns unsupported (501).",
                 inputSchema: {
                     type: "object",
                     properties: {
@@ -244,7 +277,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: "register_ios_device",
-                description: "Register a new iOS device to the device pool. Note: depends on the upstream iOS service and may be temporarily unavailable",
+                description: "Legacy compatibility tool; iOS registration is not implemented and returns unsupported (501).",
                 inputSchema: {
                     type: "object",
                     properties: {}
@@ -252,7 +285,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: "get_manga_progress",
-                description: "Query the progress of a manga download task by its task ID (returned from the comic content interface)",
+                description: "Legacy compatibility tool; manga download tasks are not implemented and return unsupported (501).",
                 inputSchema: {
                     type: "object",
                     properties: {
@@ -273,6 +306,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
         const fanqieApi = new FanQieApi();
+        if (Object.hasOwn(accountActions, request.params.name)) {
+            const data = await fanqieApi.account(accountActions[request.params.name], request.params.arguments || {});
+            const { qrcode, ...metadata } = data;
+            return { content: [
+                    { type: 'text', text: JSON.stringify(metadata, null, 2) },
+                    ...(qrcode ? [{ type: 'image', mimeType: 'image/png', data: qrcode.slice('data:image/png;base64,'.length) }] : []),
+                ] };
+        }
         switch (request.params.name) {
             // 搜索书籍
             case "search_books": {
@@ -282,7 +323,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 if (!key) {
                     throw new Error("搜索关键词不能为空");
                 }
-                const result = await fanqieApi.searchBooks(key, tabType, offset);
+                const cursor = request.params.arguments?.cursor === undefined ? undefined : String(request.params.arguments.cursor);
+                const result = await fanqieApi.searchBooks(key, tabType, offset, cursor);
                 return {
                     content: [{
                             type: "text",
@@ -318,7 +360,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 if (!bookId) {
                     throw new Error("书籍ID不能为空");
                 }
-                const result = await fanqieApi.getBookDirectory(bookId);
+                const result = await fanqieApi.getBookDirectory(bookId, Number(request.params.arguments?.offset ?? 0), Number(request.params.arguments?.limit ?? 50));
                 return {
                     content: [{
                             type: "text",
@@ -335,7 +377,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 if (!bookId) {
                     throw new Error("书籍ID不能为空");
                 }
-                const result = await fanqieApi.getSimpleDirectory(bookId);
+                const result = await fanqieApi.getSimpleDirectory(bookId, Number(request.params.arguments?.offset ?? 0), Number(request.params.arguments?.limit ?? 50));
                 return {
                     content: [{
                             type: "text",

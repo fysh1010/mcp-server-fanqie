@@ -1,7 +1,7 @@
 {
   "name": "@fysh925/mcp-server-fanqie",
-  "version": "0.2.0-dev.5",
-  "description": "番茄 MCP 与 Skill：小说、漫画、短剧分类搜索，书评正文，小说目录与网站正文",
+  "version": "0.2.0-dev.6",
+  "description": "番茄 MCP 与独立 Skill：分类搜索、书评、小说阅读，本人扫码登录、书架、阅读进度与收藏划线",
   "private": false,
   "type": "module",
   "license": "MIT",
@@ -45,7 +45,8 @@
     "scripts/*.mjs",
     "docs/USAGE.md",
     "licenses/",
-    "THIRD_PARTY_NOTICES.md"
+    "THIRD_PARTY_NOTICES.md",
+    "docs/FUNCTIONS.md"
   ],
   "scripts": {
     "build": "tsc && node scripts/build-skill.mjs && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
