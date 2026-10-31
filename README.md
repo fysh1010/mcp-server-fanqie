@@ -11,6 +11,14 @@
 
 > 本版发布到GitHub，未发布npm registry。不要用旧说明中的 `npx -y @fysh925/mcp-server-fanqie` 安装方式判断本版能力：registry里的旧包仍是旧架构。请使用本仓库源码或本版Release附件。
 
+## 三种使用方式
+
+- **MCP**：为支持 MCP 的 AI 客户端提供番茄搜索、阅读和本人账号数据查询。当前开发预览版请按[使用指南](docs/USAGE.md)从源码或 Release 安装。
+- **独立 Skill**：在支持 Skill 和 Node.js 22+ 的客户端中使用，技能目录包含独立运行文件。安装方法见[使用指南](docs/USAGE.md#skill-安装)。
+- **DeepSeek Harness 插件**：在右侧栏搜索、查看封面和目录、阅读网站可见章节；本人扫码后查看书架和收藏划线，并提供对话工具。详见[插件文档](plugins/deepseek-harness/README.md)。
+
+DeepSeek Harness 插件是独立包 `dsh-fanqie-reader`；它与上文提到的 MCP 包 `@fysh925/mcp-server-fanqie` 是不同的 npm 包。插件当前支持的媒体范围和账号使用方式见插件文档。
+
 ## 为什么重做：从第三方服务迁移到本地实现
 
 旧版0.1.x的主要职责是把第三方服务封装成14个MCP工具，默认请求 `http://101.35.133.34:5000`。搜索、目录、正文和设备管理等能力由该第三方服务器提供。第三方地址不可用后，MCP工具虽然仍能列出，实际查询也会随之失效。

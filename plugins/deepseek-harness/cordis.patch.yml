@@ -1,0 +1,5 @@
+# 番茄阅读 bundle：一条 Host 插件行（index.js 为 Host 半），
+# package.json 的 dsh.client 声明让 Web 端加载 ./client 作为浏览器半。
+- insert:
+    - id: fanqie-reader
+      name: 'dsh-fanqie-reader'

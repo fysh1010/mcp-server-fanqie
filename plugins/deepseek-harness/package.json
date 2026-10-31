@@ -1,0 +1,72 @@
+{
+  "name": "dsh-fanqie-reader",
+  "version": "0.4.0",
+  "type": "module",
+  "description": "DeepSeek Harness 右侧栏番茄阅读：搜索小说/听书/漫画/短剧元数据、看封面与目录、阅读官网可见章节；本人扫码后查看书架、阅读位置与收藏划线，并提供 fanqie_* 对话工具。",
+  "icon": "icon.svg",
+  "author": "fysh1010",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fysh1010/mcp-server-fanqie.git",
+    "directory": "plugins/deepseek-harness"
+  },
+  "homepage": "https://github.com/fysh1010/mcp-server-fanqie/tree/main/plugins/deepseek-harness#readme",
+  "bugs": {
+    "url": "https://github.com/fysh1010/mcp-server-fanqie/issues"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "fanqie",
+    "tomato-novel",
+    "reader",
+    "novel",
+    "番茄小说",
+    "阅读器"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "licenses/",
+    "vendor/",
+    "scripts/vendor.mjs",
+    "README.md"
+  ],
+  "scripts": {
+    "vendor": "node scripts/vendor.mjs",
+    "check:vendor": "node scripts/vendor.mjs --check"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar-right",
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=22",
+    "dsh": ">=0.2.0-rc.0"
+  }
+}
