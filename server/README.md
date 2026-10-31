@@ -1,6 +1,6 @@
 # 本地 API 开发预览版 0.2.0-dev.6
 
-本项目同时提供 MCP 和独立 Skill，安装方法见 [双入口指南](../docs/USAGE.md)。Skill直接调用核心代码，不需要启动本HTTP服务。
+本项目提供 MCP、独立 Skill 和 DeepSeek Harness 插件，安装方法见 [使用指南](../docs/USAGE.md)。Skill 与 Harness 插件各自调用核心运行文件，不需要启动本HTTP服务。
 
 Node.js 22+。仅依赖本项目的 npm 依赖，运行不需要 Python、Docker、浏览器或第三方开放 API。
 
@@ -131,7 +131,7 @@ if ($first.data.has_more -and $first.data.cursor) {
 
 评论返回 `data.comments[].text` 和同值的 `content`，不在客户端截断。下一页将 `data.cursor` 原样作为 URL 参数 cursor 传回；优先使用cursor保留官方分页会话。未提供cursor时，offset以官方偏移参数请求，不保证排序一致。这里只读取书评列表，不提供发评论、回复、章评或段评。
 
-漫画、短剧与听书搜索走官方App只读接口，签名在本地生成；不依赖公共签名站点。匿名设备过期时会明确报错，可通过上面两个变量配置有效设备。不会自动注册设备或激活会员。Node需要支持原生SM3（标准Node.js 22+构建通常具备）；算法不可用时会报SIGNING_UNAVAILABLE。
+漫画、短剧与听书搜索走官方App只读接口，签名在本地生成；不依赖公共签名站点。匿名设备过期时会明确报错，可通过上面两个变量配置有效设备。不会自动注册设备或激活会员。SM3 优先使用 Node 原生实现；运行环境不提供原生 SM3 时使用纯 JavaScript 实现。
 
 ## 数据边界与验证
 

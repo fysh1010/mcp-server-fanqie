@@ -1,6 +1,22 @@
-# 功能与方法清单（0.2.0-dev.6）
+# 功能与方法清单：MCP、Skill 与 Harness 插件
 
-MCP、独立Skill、CLI和HTTP API共用数据核心。MCP由AI客户端调用工具；Skill由AI执行技能中的脚本；CLI可在终端直接使用。安装与登录流程见 [使用指南](USAGE.md)，HTTP参数见 [接口文档](../server/README.md)。
+MCP、独立 Skill、Harness 插件、CLI 和 HTTP API 复用同一数据核心。下表详细列出 MCP、Skill/CLI 与 HTTP 方法；Harness 提供图形界面及7个单独注册的对话工具，见本页后文。安装与登录流程见 [使用指南](USAGE.md)，HTTP 参数见 [接口文档](../server/README.md)。
+
+## DeepSeek Harness 插件
+
+插件右侧栏提供四类搜索、封面、书籍详情、目录、网站可见正文、书评，以及本人扫码后的书架、已同步阅读位置和收藏划线。以下是其对话工具；它们不是22个 MCP 工具的完整映射。
+
+| Harness 工具 | 功能 |
+| --- | --- |
+| `fanqie_search_books` | 小说、听书、漫画和短剧元数据搜索 |
+| `fanqie_book_detail` | 查看书籍详情 |
+| `fanqie_book_directory` | 分页查看目录 |
+| `fanqie_read_chapter` | 读取网站可见章节正文片段 |
+| `fanqie_book_comments` | 获取书评 |
+| `fanqie_my_bookshelf` | 查看本人书架及已同步位置 |
+| `fanqie_my_highlights` | 查看本人收藏划线 |
+
+Harness 账号登录和退出在插件界面操作；漫画、听书和短剧只支持搜索元数据。安装方式见 [插件文档](../plugins/deepseek-harness/README.md)。
 
 ## 公开查询：无需账号登录
 

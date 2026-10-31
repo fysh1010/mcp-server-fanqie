@@ -1,6 +1,6 @@
-# MCP 与 Skill 双入口
+# 安装与使用：MCP、独立 Skill 与 DeepSeek Harness 插件
 
-本仓库保留一个数据核心，提供 MCP、Skill/CLI 和可选 HTTP API。当前 `0.2.0-dev.6` 为GitHub开发预览版。[下载Release](https://github.com/fysh1010/mcp-server-fanqie/releases/tag/v0.2.0-dev.6)。本次不发布npm，公共registry中的旧版不包含这些新功能。
+本仓库提供 MCP、独立 Skill、DeepSeek Harness 插件，以及 CLI 和可选 HTTP API。MCP / Skill 的历史 Release 为 [`0.2.0-dev.6`](https://github.com/fysh1010/mcp-server-fanqie/releases/tag/v0.2.0-dev.6)；Harness 插件为当前源码中的 `0.4.0`，不在该历史 Release 中。插件暂未发布 npm；公共 registry 中的旧 MCP 包也不包含此开发预览版。
 
 ## 选择入口
 
@@ -8,10 +8,20 @@
 | --- | --- | --- |
 | MCP | 支持 MCP 的 AI 客户端 | 客户端启动 MCP，MCP 自动启动随机本地端口 API |
 | Skill | 支持 Skills、可运行本地命令的 AI 助手 | 按需运行脚本，直接查询官方数据，用完退出，不启动监听端口 |
+| DeepSeek Harness 插件 | 希望在 Harness 中使用阅读界面和对话工具 | 从当前仓库安装插件目录；在右侧栏打开图形界面 |
 | CLI | 终端或自己的脚本 | 与 Skill 相同 |
 | HTTP API | 其他程序需要访问本机接口 | 单独启动，默认 127.0.0.1:5000 |
 
 都需要 Node.js 22+ 和访问番茄官方站点的网络。支持 Skills 不自动代表允许执行脚本；所用客户端必须具备本地脚本执行权限。
+
+## DeepSeek Harness 插件安装
+
+1. 克隆或下载当前仓库，完整保留 `plugins/deepseek-harness/`，包括 `vendor/` 和 `cordis.patch.yml`。
+2. 在 Harness 插件管理页选择该目录安装；也可在 Harness 会话中让智能体用 `plugin_manager install_bundle` 安装该目录的绝对路径。
+3. 必要时刷新或重启后，展开右侧栏，点击「+」进入开始页，选择「番茄阅读」。
+4. 页面支持搜索、封面、详情、目录、网站可见正文、书评和本人扫码后的书架及收藏划线；7个 `fanqie_*` 工具也可由 Harness 对话调用。
+
+插件文档记录的桌面验证版本为 `0.2.1-rc.5`；其他版本需要自行验证兼容性。`dsh-fanqie-reader` 当前未发布 npm，历史 Release 也不包含插件。更多安装、隐私和卸载说明见 [插件文档](../plugins/deepseek-harness/README.md)。
 
 ## 从 GitHub 获取
 
@@ -213,7 +223,7 @@ MCP可将上述设备变量放进该服务器配置的 `env` 对象；只填写�
 
 本版实现包括小说、听书、漫画和短剧搜索，书评正文及游标翻页，小说详情、目录、网站可见正文、原始章节数据和最多20章批量读取。搜索失败可降级为本地已收录书籍检索，会明确标记 `source=local_index`。
 
-书评正文与四类搜索已经接入本版MCP、Skill和API。安卓注册、App正文、音视频播放、iOS、整本下载和漫画任务不在本版提供范围内。MCP/Skill 不改变这些边界。见 [实验记录](../server/EXPERIMENTS.md) 和 [HTTP接口文档](../server/README.md)。
+书评正文与四类搜索已接入 MCP、Skill、HTTP API 和 Harness 插件的对应界面或工具。安卓注册、App正文、音视频播放、iOS、整本下载和漫画任务不在本版提供范围内。各入口不改变这些边界；Harness 的7个工具也不等同于完整 MCP 工具集合。见 [实验记录](../server/EXPERIMENTS.md) 和 [HTTP接口文档](../server/README.md)。
 
 ## 维护与验证
 
@@ -225,3 +235,5 @@ node "server/smoke.mjs"
 ```
 
 Skill 的 `scripts/runtime/` 是核心代码的生成副本，没有第二套独立维护的爬虫源码；`npm run build` 自动同步这些文件。核心变更后运行构建、提交生成副本，并验证独立目录安装后的查询。发布时排除 `.env`、`.cache`、`node_modules`、原有个人工作流目录及签名实验临时文件。
+
+Harness 插件的 `vendor/` 也是核心文件的同步副本。修改核心后，运行 `node "plugins/deepseek-harness/scripts/vendor.mjs"` 同步，再运行 `node "plugins/deepseek-harness/scripts/vendor.mjs" --check` 和 `node --test "plugins/deepseek-harness/test/host.test.mjs"` 验证。

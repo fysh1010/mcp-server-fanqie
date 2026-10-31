@@ -1,15 +1,17 @@
-# 番茄小说：MCP、独立 Skill 与本地 API
+# 番茄小说：MCP、独立 Skill 与 DeepSeek Harness 阅读插件
 
 [![License](https://img.shields.io/github/license/fysh1010/mcp-server-fanqie)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/fysh1010/mcp-server-fanqie)](https://github.com/fysh1010/mcp-server-fanqie/stargazers)
 
 搜索番茄作品、查看小说目录和网站可见正文、读取书评；本人扫码登录后，还可以读取自己的书架、阅读进度和收藏划线原文。
 
-**当前版本：`0.2.0-dev.6`，GitHub开发预览版。** 默认使用本机运行的数据核心，直接请求番茄官方站点，已取消对旧第三方开放API的默认依赖。独立Skill包含全部必需运行代码，只需要Node.js 22+和网络；MCP需要安装项目依赖。
+项目提供三种入口：**MCP 服务、独立 Skill、DeepSeek Harness 图形插件**，另有命令行和本地 HTTP API。各入口复用本机数据核心，直接访问番茄官方站点。
 
-[下载本版](https://github.com/fysh1010/mcp-server-fanqie/releases/tag/v0.2.0-dev.6) · [详细安装与使用](docs/USAGE.md) · [全部方法清单](docs/FUNCTIONS.md) · [HTTP接口文档](server/README.md)
+**版本说明：**MCP / Skill 历史 Release 为 `0.2.0-dev.6`；DeepSeek Harness 插件为源码中的 `0.4.0`。旧 Release 不含该插件，应从当前仓库获取插件。
 
-> 本版发布到GitHub，未发布npm registry。不要用旧说明中的 `npx -y @fysh925/mcp-server-fanqie` 安装方式判断本版能力：registry里的旧包仍是旧架构。请使用本仓库源码或本版Release附件。
+[安装与使用](docs/USAGE.md) · [Harness 插件](plugins/deepseek-harness/README.md) · [功能清单](docs/FUNCTIONS.md) · [HTTP API](server/README.md) · [历史 Release](https://github.com/fysh1010/mcp-server-fanqie/releases/tag/v0.2.0-dev.6)
+
+> 当前插件尚未发布到 npm；旧 npm 包 `@fysh925/mcp-server-fanqie` 也不包含此开发预览版。请使用仓库源码或对应的历史 Release，不要使用旧 npm 包判断当前功能。
 
 ## 三种使用方式
 
@@ -26,7 +28,7 @@ DeepSeek Harness 插件是独立包 `dsh-fanqie-reader`；它与上文提到的 
 本次把数据获取实现放进项目本身：
 
 - **本地实现公开查询**：搜索、书籍详情、目录、网站可见章节、书评正文，直接访问官方入口。
-- **同时提供MCP和独立Skill**：两种入口共用核心，Skill不需要另外启动HTTP服务，也不依赖仓库外的运行代码。
+- **提供 MCP、独立 Skill 和 Harness 插件**：三种入口复用核心；Skill 可以独立运行，Harness 插件提供图形界面和对话工具。
 - **新增本人账号能力**：扫码登录、当前书架、云端阅读位置、收藏划线原文及翻页。
 - **补齐使用与错误处理**：目录分页、分类搜索游标、完整书评文本、故障重试、限流提示及本地索引后备。
 - **明确能力边界**：保留旧路径方便迁移，未实现的功能返回501；不把工具名称还存在当作功能已经完成。
@@ -111,7 +113,7 @@ DeepSeek Harness 插件是独立包 `dsh-fanqie-reader`；它与上文提到的 
 | `register_ios_device` | 无 | 尚未实现，返回501 |
 | `get_manga_progress` | 无 | 尚未实现，返回501 |
 
-MCP共注册22个工具，其中16个公开查询/本人账号工具、2个状态兼容工具、4个未实现工具。Skill/CLI有19个命令，含help和capabilities。参数、HTTP路径及边界见 [完整清单](docs/FUNCTIONS.md)。
+MCP共注册22个工具，其中16个公开查询/本人账号工具、2个状态兼容工具、4个未实现工具。Skill/CLI有19个命令，含help和capabilities。Harness 插件另注册7个 `fanqie_*` 对话工具，并提供图形界面；它们与 MCP 的22个工具不是一一对应。参数、HTTP路径及边界见 [完整清单](docs/FUNCTIONS.md)。
 
 ## 我们如何实现
 
@@ -122,6 +124,8 @@ flowchart TD
     A[支持MCP的AI客户端] --> B[MCP工具层]
     B --> C[自动启动的本机HTTP API]
     D[Skill或终端CLI] --> E[共享数据核心]
+    P[Harness右侧栏与对话工具] --> Q[插件Host]
+    Q --> E
     F[其他本机程序] --> C
     C --> E
     E --> G[公开查询客户端]
@@ -147,7 +151,7 @@ flowchart TD
 | 扫码与会话 | 官方二维码、本人手机确认、手动保留跳转中的Cookie；成功后验证阅读进度接口，凭据持久化到本机 | `server/accounts.mjs` |
 | 书架与进度 | 读取官方书架和进度，再按book_id关联书籍详情、章节标题；保留上游进度值，不猜测百分比 | `server/accounts.mjs` |
 | 收藏划线 | 先列出有收藏的书，再读取官方bookmark列表；初次带next_id=0，后续cursor同时携带两项上游分页标记；区分划线和普通书签 | `server/accounts.mjs` |
-| MCP和Skill复用 | MCP通过本地API调用核心；Skill直接调用同一核心。构建时把运行文件复制进技能目录，可独立安装 | `src/`、`server/cli.mjs`、`scripts/build-skill.mjs` |
+| 三种入口复用 | MCP通过本地API调用核心；Skill和Harness插件分别使用同步的核心运行文件，可独立安装 | `src/`、`scripts/build-skill.mjs`、`plugins/deepseek-harness/` |
 
 小说公开搜索不需要签名或本人登录。书评与App分类搜索使用匿名设备参数和本地签名，内置公共示例设备可能失效，可配置配套的 `FANQIE_DEVICE_ID`、`FANQIE_INSTALL_ID`；不会自动注册设备或激活会员。个人书架和划线使用本人扫码的会话，与匿名设备配置是两条独立链路。
 
@@ -160,14 +164,24 @@ flowchart TD
 - 只有 `has_more=false` 才结束划线翻页。上游分页同时计算书签等记录，某页没有划线也可能还有下一页。
 - HTTP API仅监听本机，拒绝浏览器Origin及非本机Host，可选Bearer Token；账号接口不面向公开部署或多租户服务。
 
-## 安装：选择MCP或Skill
+## 安装：选择适合的入口
 
 | 入口 | 前置要求 | 是否手动启动API |
 | --- | --- | --- |
 | MCP | Node.js 22+、项目npm依赖、支持MCP的客户端 | 不需要，自动启动随机本地端口API |
 | 独立Skill | Node.js 22+、支持Skills且能执行本地脚本的客户端 | 不需要，直接运行核心代码 |
+| DeepSeek Harness 插件 | 支持插件的 Harness 桌面端；已记录 `0.2.1-rc.5` 的桌面验证 | 不需要，插件 Host 调用内置核心 |
 | CLI | Node.js 22+和完整代码 | 不需要 |
 | HTTP API | Node.js 22+和项目依赖 | 单独启动，默认127.0.0.1:5000 |
+
+### DeepSeek Harness：图形界面与对话工具
+
+1. 克隆或下载当前仓库，保留完整的 `plugins/deepseek-harness/` 目录，包括 `vendor/`。
+2. 在 Harness 的插件管理页选择该目录安装，或在会话中让智能体通过 `plugin_manager install_bundle` 安装该目录的绝对路径。
+3. 按需刷新或重启 Harness，打开右侧栏的「+」开始页，选择「番茄阅读」。
+4. 在界面搜索、浏览目录和阅读；查看本人书架与划线时，在「我的」页面按官方提示扫码。
+
+插件还提供7个 `fanqie_*` 对话工具。它与 MCP/Skill 可分别使用，账号凭据默认沿用核心的本机存储方式；具体路径可能因打包环境而不同。安装与卸载详见 [插件文档](plugins/deepseek-harness/README.md)。插件目前未发布到 npm，历史 `0.2.0-dev.6` Release 也不含它。
 
 ### 独立Skill：无需npm依赖
 

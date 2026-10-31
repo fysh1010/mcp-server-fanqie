@@ -1,5 +1,7 @@
 # 番茄小说三件套 · 发布运行手册（PUBLISHING.md）
 
+> 状态提示：本文保留开发时的发布步骤和检查项，部分“已完成/待执行”表述是当时的记录，执行前应核对 GitHub 和 npm 的当前状态。用户目前暂不发布 npm；插件 `0.4.0` 源码已推送 GitHub，社区收录需另行提交 PR 并等待维护者审核。MCP / Skill 的历史 `0.2.0-dev.6` Release 不包含该插件。
+
 > 本文写给**带工具的 AI 执行者**（GPT/Codex 等）：照步骤执行即可完成全部发布工作。
 > 所有命令在仓库根目录 `E:\WorkSpace\Projects\Fysh\AI\AI_Agent\fanqie-mcp`（Git 远端
 > `https://github.com/fysh1010/mcp-server-fanqie.git`，分支 `main`）执行，除非另注明。
@@ -68,7 +70,7 @@ vendor/               # 7 个核心文件同步副本（发布必须包含，运
 
 ### 1. MCP 服务器（AI 客户端通用）
 - 适用：Claude Code / Cursor / 任何支持 MCP 的客户端。
-- 安装：`npm i -g @fysh925/mcp-server-fanqie`，客户端 MCP 配置指向 `mcp-server-fanqie`（stdio）。
+- 安装：使用本仓库源码或 `0.2.0-dev.6` Release，按 `docs/USAGE.md` 配置 MCP；registry 中的旧 MCP 包不含此预览版。
 - 能力：22 个工具——搜索（小说/听书/漫画/短剧）、书评、详情、目录、正文、批量正文，
   以及本人扫码登录后的书架、阅读进度、收藏划线。
 - 详见 [docs/USAGE.md](docs/USAGE.md) 与 [docs/FUNCTIONS.md](docs/FUNCTIONS.md)。
